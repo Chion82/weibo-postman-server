@@ -1,0 +1,4 @@
+.pyc
+.DS_Store
+app_secret
+session_key
