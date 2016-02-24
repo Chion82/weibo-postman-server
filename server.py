@@ -6,10 +6,10 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 app = Flask(__name__)
-app.secret_key = open('session_key', 'r').read()
+app.secret_key = open('session_key', 'r').read().replace('\n', '')
 
 app_key = '3125827369'
-app_secret = open('app_secret', 'r').read()
+app_secret = open('app_secret', 'r').read().replace('\n', '')
 redirect_uri = 'http://119.29.154.223:5011/api/auth_callback'
 
 @app.route('/api/auth_callback', methods=['GET'])
