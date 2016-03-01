@@ -1,4 +1,4 @@
-import requests, json, sys
+import requests, json, sys, os
 from flask import Flask, request, session, jsonify
 from urllib import quote
 
@@ -29,16 +29,43 @@ def api_auth_callback():
 
 @app.route('/api/post_weibo', methods=['GET', 'POST'])
 def api_post_weibo():
-	if not 'access_token' in session:
-		return jsonify({'status': 403})
-	access_token = session['access_token']
-	if not is_access_token_valid(access_token):
-		return jsonify({'status':403})
+	if not 'access_token' in request.args:
+		if not 'access_token' in session:
+			return jsonify({'status': 403})
+		access_token = session['access_token']
+		if not is_access_token_valid(access_token):
+			return jsonify({'status':403})
+	else:
+		access_token = request.args['access_token']
+
 	if 'text' in request.form:
 		text = request.form['text']
 	else:
 		text = request.args['text']
-	request_result = requests.post('https://api.weibo.com/2/statuses/update.json', {'access_token':access_token, 'status':text})
+
+	api_ship_id = None
+	if 'api_ship_id' in request.form:
+		api_ship_id = request.form['api_ship_id']
+	if 'api_ship_id' in request.args:
+		api_ship_id = request.args['api_ship_id']
+
+	post_image_flag = False
+	if api_ship_id != None and ship_get_image_exists(api_ship_id):
+		if (ship_get_image_exists(api_ship_id)):
+			post_image_flag = True
+
+	if post_image_flag:
+		request_result = requests.post('https://api.weibo.com/2/statuses/upload_url_text.json', {
+			'access_token':access_token,
+			'status':text,
+			'url':'https://rawgit.com/Chion82/weibo-postman-server/master/ship_images/%s.png' % api_ship_id
+		})
+	else:
+		request_result = requests.post('https://api.weibo.com/2/statuses/update.json', {
+			'access_token':access_token,
+			'status':text
+		})
+
 	result_json = json.loads(request_result.content)
 	if 'id' in result_json:
 		return jsonify({'status':200, 'weibo_id':result_json['id']})
@@ -52,6 +79,9 @@ def is_access_token_valid(access_token):
 		return True
 	else:
 		return False
+
+def ship_get_image_exists(api_ship_id):
+	return os.path.isfile('ship_images/' + api_ship_id + '.png')
 
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=5011, debug=True)
