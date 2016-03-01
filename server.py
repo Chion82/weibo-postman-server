@@ -58,7 +58,7 @@ def api_post_weibo():
 		request_result = requests.post('https://api.weibo.com/2/statuses/upload_url_text.json', {
 			'access_token':access_token,
 			'status':text,
-			'url':'https://rawgit.com/Chion82/weibo-postman-server/master/ship_images/%s.png' % api_ship_id
+			'url':'http://blog.chionlab.moe/ship_images/%s.png' % api_ship_id
 		})
 	else:
 		request_result = requests.post('https://api.weibo.com/2/statuses/update.json', {
